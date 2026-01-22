@@ -443,15 +443,28 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
   }
 
   private void removeAllRecipes() {
+    // Get all recipes and remove ours
     Iterator<Recipe> iterator = Bukkit.recipeIterator();
+    List<Recipe> newRecipes = new ArrayList<>();
+
     while (iterator.hasNext()) {
       Recipe recipe = iterator.next();
       if (recipe instanceof ShapedRecipe) {
         ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
-        if (shapedRecipe.getKey().getNamespace().equals(getName().toLowerCase())) {
-          iterator.remove();
+        // Keep recipes that are NOT from our plugin
+        if (!shapedRecipe.getKey().getNamespace().equals(getName().toLowerCase())) {
+          newRecipes.add(recipe);
         }
+      } else {
+        // Keep non-shaped recipes
+        newRecipes.add(recipe);
       }
+    }
+
+    // Clear and re-add all recipes
+    Bukkit.clearRecipes();
+    for (Recipe recipe : newRecipes) {
+      Bukkit.addRecipe(recipe);
     }
   }
 
