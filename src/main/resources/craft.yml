@@ -1,0 +1,58 @@
+# Configuration des crafts uniques
+
+# Liste des objets déjà craftés (ne pas modifier manuellement)
+crafted: {}
+
+# Configuration des crafts disponibles
+crafts:
+  epee_unique:
+    # Forme du craft (3 lignes de 3 caractères max)
+    shape:
+      - " D "
+      - " D "
+      - " S "
+    
+    # Ingédients (correspondent aux caractères dans la forme)
+    ingredients:
+      D: DIAMOND
+      S: STICK
+    
+    # Résultat du craft
+    result:
+      material: DIAMOND_SWORD
+      amount: 1
+    
+    # Message à afficher dans le chat lors du craft
+    message: "§6§lL'épée légendaire a été forgée par %player% !"
+  
+  coffre_magique:
+    shape:
+      - "GGG"
+      - "GEG"
+      - "GGG"
+    
+    ingredients:
+      G: GOLD_INGOT
+      E: EMERALD
+    
+    result:
+      material: CHEST
+      amount: 1
+    
+    message: "§5§lLe coffre magique a été créé par %player% !"
+  
+  balle_cristal:
+    shape:
+      - " Q "
+      - "QAQ"
+      - " Q "
+    
+    ingredients:
+      Q: QUARTZ
+      A: AMETHYST_SHARD
+    
+    result:
+      material: END_CRYSTAL
+      amount: 1
+    
+    message: "§b§lLa balle de cristal a été façonnée par %player% !"

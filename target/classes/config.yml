@@ -1,0 +1,28 @@
+# Configuration UniqueCrafts
+# Version: 1.0.0
+
+# Messages
+messages:
+  craft-success: "§aVous avez crafté un objet unique !"
+  craft-already-exists: "§cCet objet a déjà été crafté sur le serveur !"
+  craft-reset: "§aCraft %craft_id% réinitialisé !"
+  reload-success: "§aConfiguration rechargée !"
+  
+# Paramètres
+settings:
+  check-existing-items: true
+  broadcast-messages: true
+  save-interval: 300  # secondes entre chaque sauvegarde automatique
+  
+# Base de données (optionnel)
+database:
+  enabled: false
+  type: sqlite  # sqlite ou mysql
+  host: localhost
+  port: 3306
+  name: uniquecrafts
+  username: root
+  password: ""
+  
+# Debug
+debug: false

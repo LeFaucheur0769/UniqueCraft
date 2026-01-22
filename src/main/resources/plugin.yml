@@ -1,0 +1,23 @@
+name: UniqueCrafts
+version: 1.0.0
+main: fr.plugin.uniquecraft.UniqueCraftsPlugin
+api-version: '1.21.11'
+author: Saikozx
+description: Plugin pour des crafts uniques sur le serveur
+
+commands:
+  uniquecraft:
+    description: Gérer les crafts uniques
+    usage: /<command> [reload|list|reset]
+    permission: uniquecrafts.admin
+
+permissions:
+  uniquecrafts.admin:
+    description: Permission admin pour UniqueCrafts
+    default: op
+  uniquecrafts.reload:
+    description: Permission pour recharger la config
+    default: op
+  uniquecrafts.reset:
+    description: Permission pour réinitialiser les crafts
+    default: op
