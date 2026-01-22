@@ -8,7 +8,6 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -22,7 +21,7 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class UniqueCraftsPlugin extends JavaPlugin implements Listener, TabExecutor {
+public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
 
   private FileConfiguration craftsConfig;
   private File craftsFile;
@@ -213,7 +212,9 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener, TabExecu
         String message = craftsSection.getString("message",
             "§aL'objet unique a été crafté par " + player.getName() + " !");
         String finalMessage = message.replace("%player%", player.getName());
-        Bukkit.broadcastMessage(finalMessage);
+        for (Player p : Bukkit.getOnlinePlayers()) {
+          p.sendMessage(finalMessage);
+        }
       }
 
       player.sendMessage("§aVous avez crafté un objet unique !");
