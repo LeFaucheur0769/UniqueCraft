@@ -5,54 +5,93 @@ crafted: {}
 
 # Configuration des crafts disponibles
 crafts:
+  Ultio:
+    shape:
+      - "NRN"
+      - "BCB"
+      - "GTG"
+    ingredients:
+      N: NETHERITE_SWORD
+      R: REDSTONE_BLOCK
+      B: NETHERITE_BLOCK
+      C: NAUTILUS_SHELL
+      G: ENCHANTED_GOLDEN_APPLE
+      T: TOTEM_OF_UNDYING
+    result:
+      material: NETHERITE_SWORD
+      amount: 1
+      name: "§cUltio"
+      lore:
+        - "§lUltio§r est une épée déchue forgée "
+        - "pour un grand guerrier disparu."
+        - "Brisée lors d'un combat contre "
+        - "une entité antique, elle a absorbé"
+        - "la rage et la volonté de son maître."
+        - "Depuis, elle murmure à ceux qui la"
+        - "manient, leur offrant une puissance"
+        - "immense… mais à un prix. Seuls les plus"
+        - "dignes peuvent réveiller son vrai pouvoir."
+      enchantments:
+        fire_aspect: 2
+        looting: 3
+        sharpness: 7
+        sweeping_edge: 3
+        unbreaking: 3
+      attributes:
+        attack_damage: 8
+        attack_speed: -2.4
+      unbreakable: true
+    message: "§6§lUltio a été forgée par %player% !"
+
   epee_unique:
     # Forme du craft (3 lignes de 3 caractères max)
     shape:
       - " D "
       - " D "
       - " S "
-    
+
     # Ingédients (correspondent aux caractères dans la forme)
     ingredients:
       D: DIAMOND
       S: STICK
-    
+
     # Résultat du craft
     result:
       material: DIAMOND_SWORD
       amount: 1
-    
+
     # Message à afficher dans le chat lors du craft
     message: "§6§lL'épée légendaire a été forgée par %player% !"
-  
+
   coffre_magique:
     shape:
       - "GGG"
       - "GEG"
       - "GGG"
-    
+
     ingredients:
       G: GOLD_INGOT
       E: EMERALD
-    
+
     result:
       material: CHEST
       amount: 1
-    
+
     message: "§5§lLe coffre magique a été créé par %player% !"
-  
+
   balle_cristal:
     shape:
       - " Q "
       - "QAQ"
       - " Q "
-    
+
     ingredients:
       Q: QUARTZ
       A: AMETHYST_SHARD
-    
+
     result:
       material: END_CRYSTAL
       amount: 1
-    
+
     message: "§b§lLa balle de cristal a été façonnée par %player% !"
+

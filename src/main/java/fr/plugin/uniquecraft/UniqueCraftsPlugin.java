@@ -20,6 +20,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemFlag;
 
 public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
 
@@ -118,8 +124,125 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
       return;
 
     ItemStack result = new ItemStack(material, resultAmount);
+    ItemMeta meta = result.getItemMeta();
 
-    // Création de la recette
+    // Apply custom name
+    if (craft.contains("result.name")) {
+      String name = craft.getString("result.name");
+      if (name != null) {
+        meta.setDisplayName(name.replace('&', '§'));
+      }
+    }
+
+    // Apply custom lore
+    if (craft.contains("result.lore")) {
+      List<String> lore = new ArrayList<>();
+      for (String line : craft.getStringList("result.lore")) {
+        lore.add(line.replace('&', '§'));
+      }
+      meta.setLore(lore);
+    }
+
+    // Apply enchantments
+    if (craft.contains("result.enchantments")) {
+      ConfigurationSection enchantments = craft.getConfigurationSection("result.enchantments");
+      if (enchantments != null) {
+        for (String enchantKey : enchantments.getKeys(false)) {
+          try {
+            Enchantment enchantment = Enchantment.getByName(enchantKey.toUpperCase());
+            if (enchantment != null) {
+              int level = enchantments.getInt(enchantKey);
+              meta.addEnchant(enchantment, level, true);
+            } else {
+              getLogger().warning("Enchantement inconnu: " + enchantKey + " dans le craft " + craftId);
+            }
+          } catch (Exception e) {
+            getLogger().warning("Erreur avec l'enchantement " + enchantKey + ": " + e.getMessage());
+          }
+        }
+      }
+    }
+
+    // Apply attributes
+    if (craft.contains("result.attributes")) {
+      ConfigurationSection attributes = craft.getConfigurationSection("result.attributes");
+      if (attributes != null) {
+        for (String attrKey : attributes.getKeys(false)) {
+          double value = attributes.getDouble(attrKey);
+
+          Attribute attribute = null;
+          EquipmentSlot slot = EquipmentSlot.HAND;
+
+          // Map attribute names to Bukkit Attributes
+          switch (attrKey.toLowerCase()) {
+            case "attack_damage":
+            case "generic.attack_damage":
+              attribute = Attribute.GENERIC_ATTACK_DAMAGE;
+              break;
+            case "attack_speed":
+            case "generic.attack_speed":
+              attribute = Attribute.GENERIC_ATTACK_SPEED;
+              break;
+            case "max_health":
+            case "generic.max_health":
+              attribute = Attribute.GENERIC_MAX_HEALTH;
+              break;
+            case "movement_speed":
+            case "generic.movement_speed":
+              attribute = Attribute.GENERIC_MOVEMENT_SPEED;
+              slot = EquipmentSlot.FEET;
+              break;
+            case "armor":
+            case "generic.armor":
+              attribute = Attribute.GENERIC_ARMOR;
+              slot = EquipmentSlot.CHEST;
+              break;
+            case "armor_toughness":
+            case "generic.armor_toughness":
+              attribute = Attribute.GENERIC_ARMOR_TOUGHNESS;
+              slot = EquipmentSlot.CHEST;
+              break;
+            case "luck":
+            case "generic.luck":
+              attribute = Attribute.GENERIC_LUCK;
+              break;
+            case "knockback_resistance":
+            case "generic.knockback_resistance":
+              attribute = Attribute.GENERIC_KNOCKBACK_RESISTANCE;
+              slot = EquipmentSlot.CHEST;
+              break;
+            default:
+              getLogger().warning("Attribut inconnu: " + attrKey + " dans le craft " + craftId);
+              continue;
+          }
+
+          if (attribute != null) {
+            // Generate a unique UUID based on craftId and attribute name
+            UUID uuid = generateUUID(craftId, attrKey);
+            AttributeModifier modifier = new AttributeModifier(
+                uuid,
+                attrKey,
+                value,
+                AttributeModifier.Operation.ADD_NUMBER,
+                slot);
+            meta.addAttributeModifier(attribute, modifier);
+          }
+        }
+      }
+    }
+
+    // Apply unbreakable
+    if (craft.getBoolean("result.unbreakable", false)) {
+      meta.setUnbreakable(true);
+      meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+    }
+
+    // Hide enchantments and attributes by default
+    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+
+    result.setItemMeta(meta);
+
+    // Create recipe
     NamespacedKey key = new NamespacedKey(this, "unique_craft_" + craftId);
     ShapedRecipe recipe = new ShapedRecipe(key, result);
 
@@ -156,6 +279,18 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
     } catch (IllegalArgumentException e) {
       getLogger().warning("Erreur avec le craft " + craftId + ": " + e.getMessage());
     }
+  }
+
+  // Helper method to generate UUIDs for attributes
+  private UUID generateUUID(String craftId, String attributeName) {
+    // Use a consistent method to generate UUIDs from craftId and attribute name
+    String combined = craftId + "_" + attributeName;
+    int hash = combined.hashCode();
+
+    // Create a UUID from the hash (ensuring it's unique per craft+attribute)
+    return new UUID(
+        ((long) craftId.hashCode() << 32) | (hash & 0xffffffffL),
+        ((long) attributeName.hashCode() << 32) | (System.currentTimeMillis() & 0xffffffffL));
   }
 
   @EventHandler
@@ -212,6 +347,8 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
         String message = craftsSection.getString("message",
             "§aL'objet unique a été crafté par " + player.getName() + " !");
         String finalMessage = message.replace("%player%", player.getName());
+
+        // Broadcast message to all players
         for (Player p : Bukkit.getOnlinePlayers()) {
           p.sendMessage(finalMessage);
         }
