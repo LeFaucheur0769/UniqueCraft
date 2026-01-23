@@ -72,7 +72,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
   }
 
   private void loadCraftsConfig() {
-    craftsFile = new File(getDataFolder(), "crafts.yml");
+    craftsFile = new File(getDataFolder(), "craft.yml");
     if (!craftsFile.exists()) {
       saveResource("craft.yml", false);
     }
