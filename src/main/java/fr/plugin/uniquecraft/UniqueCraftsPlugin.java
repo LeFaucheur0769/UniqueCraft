@@ -72,62 +72,86 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
   }
 
   private void loadCraftsConfig() {
-    craftsFile = new File(getDataFolder(), "craft.yml");
+    craftsFile = new File(getDataFolder(), "crafts.yml");
     if (!craftsFile.exists()) {
-      saveResource("craft.yml", false);
+      getLogger().info("§eFichier crafts.yml non trouvé, création...");
+      saveResource("crafts.yml", false);
+      getLogger().info("§aFichier crafts.yml créé !");
+    } else {
+      getLogger().info("§aFichier crafts.yml trouvé !");
     }
     craftsConfig = YamlConfiguration.loadConfiguration(craftsFile);
+    getLogger().info("§aConfiguration crafts.yml chargée !");
   }
 
   private void saveCraftsConfig() {
     try {
       craftsConfig.save(craftsFile);
+      getLogger().info("§aSauvegarde crafts.yml réussie !");
     } catch (IOException e) {
-      getLogger().severe("Erreur lors de la sauvegarde des crafts: " + e.getMessage());
+      getLogger().severe("§cErreur lors de la sauvegarde des crafts: " + e.getMessage());
     }
   }
 
   private void loadCraftedItems() {
     ConfigurationSection craftedSection = craftsConfig.getConfigurationSection("crafted");
     if (craftedSection != null) {
+      getLogger().info("§aChargement des crafts déjà réalisés...");
       for (String craftId : craftedSection.getKeys(false)) {
         if (craftedSection.getBoolean(craftId)) {
           globalCraftedItems.add(craftId);
+          getLogger().info("§7- Craft déjà fait: " + craftId);
         }
       }
+      getLogger().info("§aTotal crafts déjà réalisés: " + globalCraftedItems.size());
+    } else {
+      getLogger().info("§eAucun craft réalisé précédemment.");
     }
   }
 
   private void loadCustomRecipes() {
-  ConfigurationSection craftsSection = craftsConfig.getConfigurationSection("crafts");
-  if (craftsSection == null) {
-    getLogger().warning("Section 'crafts' introuvable dans crafts.yml !");
-    getLogger().warning("Contenu du fichier: " + craftsConfig.saveToString());
-    return;
-  }
-
-  getLogger().info("Nombre de crafts trouvés: " + craftsSection.getKeys(false).size());
-  
-  for (String craftId : craftsSection.getKeys(false)) {
-    getLogger().info("Chargement du craft: " + craftId);
-    ConfigurationSection craft = craftsSection.getConfigurationSection(craftId);
-    if (craft != null) {
-      registerRecipe(craftId, craft);
+    getLogger().info("§6=== CHARGEMENT DES CRAFTS ===");
+    ConfigurationSection craftsSection = craftsConfig.getConfigurationSection("crafts");
+    if (craftsSection == null) {
+      getLogger().severe("§cERREUR: Section 'crafts' introuvable dans crafts.yml !");
+      getLogger().severe("§cVérifiez que votre fichier contient bien:");
+      getLogger().severe("§ccrafts:");
+      getLogger().severe("§c  nom_du_craft:");
+      getLogger().severe("§c    shape: etc...");
+      return;
     }
+
+    getLogger().info("§aCrafts trouvés dans config: " + craftsSection.getKeys(false).size());
+    
+    for (String craftId : craftsSection.getKeys(false)) {
+      getLogger().info("§eTentative de chargement du craft: §6" + craftId);
+      ConfigurationSection craft = craftsSection.getConfigurationSection(craftId);
+      if (craft != null) {
+        registerRecipe(craftId, craft);
+      } else {
+        getLogger().warning("§cImpossible de charger la section pour: " + craftId);
+      }
+    }
+    getLogger().info("§6=== FIN CHARGEMENT CRAFTS ===");
   }
-}
 
   private void registerRecipe(String craftId, ConfigurationSection craft) {
+    getLogger().info("§e--- Début enregistrement craft: §6" + craftId);
+    
     // Récupération du résultat
     String resultMaterial = craft.getString("result.material");
     int resultAmount = craft.getInt("result.amount", 1);
 
-    if (resultMaterial == null)
+    if (resultMaterial == null) {
+      getLogger().warning("§cMatériau résultat manquant pour: " + craftId);
       return;
+    }
 
     Material material = Material.getMaterial(resultMaterial.toUpperCase());
-    if (material == null)
+    if (material == null) {
+      getLogger().warning("§cMatériau inconnu: " + resultMaterial + " pour: " + craftId);
       return;
+    }
 
     ItemStack result = new ItemStack(material, resultAmount);
     ItemMeta meta = result.getItemMeta();
@@ -137,6 +161,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
       String name = craft.getString("result.name");
       if (name != null) {
         meta.setDisplayName(name.replace('&', '§'));
+        getLogger().info("§7Nom personnalisé: " + name);
       }
     }
 
@@ -147,23 +172,26 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
         lore.add(line.replace('&', '§'));
       }
       meta.setLore(lore);
+      getLogger().info("§7Lore ajouté (" + lore.size() + " lignes)");
     }
 
     // Apply enchantments
     if (craft.contains("result.enchantments")) {
       ConfigurationSection enchantments = craft.getConfigurationSection("result.enchantments");
       if (enchantments != null) {
+        getLogger().info("§7Enchantements à appliquer: " + enchantments.getKeys(false).size());
         for (String enchantKey : enchantments.getKeys(false)) {
           try {
             Enchantment enchantment = Enchantment.getByName(enchantKey.toUpperCase());
             if (enchantment != null) {
               int level = enchantments.getInt(enchantKey);
               meta.addEnchant(enchantment, level, true);
+              getLogger().info("§7- " + enchantKey + ": " + level);
             } else {
-              getLogger().warning("Enchantement inconnu: " + enchantKey + " dans le craft " + craftId);
+              getLogger().warning("§eEnchantement inconnu: " + enchantKey + " dans le craft " + craftId);
             }
           } catch (Exception e) {
-            getLogger().warning("Erreur avec l'enchantement " + enchantKey + ": " + e.getMessage());
+            getLogger().warning("§cErreur avec l'enchantement " + enchantKey + ": " + e.getMessage());
           }
         }
       }
@@ -173,6 +201,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
     if (craft.contains("result.attributes")) {
       ConfigurationSection attributes = craft.getConfigurationSection("result.attributes");
       if (attributes != null) {
+        getLogger().info("§7Attributs à appliquer: " + attributes.getKeys(false).size());
         for (String attrKey : attributes.getKeys(false)) {
           double value = attributes.getDouble(attrKey);
 
@@ -218,7 +247,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
               slot = EquipmentSlot.CHEST;
               break;
             default:
-              getLogger().warning("Attribut inconnu: " + attrKey + " dans le craft " + craftId);
+              getLogger().warning("§eAttribut inconnu: " + attrKey + " dans le craft " + craftId);
               continue;
           }
 
@@ -232,6 +261,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
                 AttributeModifier.Operation.ADD_NUMBER,
                 slot);
             meta.addAttributeModifier(attribute, modifier);
+            getLogger().info("§7- " + attrKey + ": " + value + " (slot: " + slot + ")");
           }
         }
       }
@@ -241,6 +271,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
     if (craft.getBoolean("result.unbreakable", false)) {
       meta.setUnbreakable(true);
       meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+      getLogger().info("§7Objet indestructible: OUI");
     }
 
     // Hide enchantments and attributes by default
@@ -250,20 +281,26 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
 
     // Create recipe
     NamespacedKey key = new NamespacedKey(this, "unique_craft_" + craftId);
+    getLogger().info("§aClé générée: §7" + key.toString());
+    getLogger().info("§aNamespace: §7" + key.getNamespace());
+    getLogger().info("§aKey: §7" + key.getKey());
+    
     ShapedRecipe recipe = new ShapedRecipe(key, result);
 
     // Configuration de la forme
     List<String> shapeList = craft.getStringList("shape");
     if (shapeList.size() != 3) {
-      getLogger().warning("La forme du craft " + craftId + " doit avoir 3 lignes!");
+      getLogger().warning("§cLa forme du craft " + craftId + " doit avoir 3 lignes!");
       return;
     }
 
     recipe.shape(shapeList.toArray(new String[0]));
+    getLogger().info("§7Forme: " + String.join(", ", shapeList));
 
     // Configuration des ingrédients
     ConfigurationSection ingredients = craft.getConfigurationSection("ingredients");
     if (ingredients != null) {
+      getLogger().info("§7Ingrédients: " + ingredients.getKeys(false).size());
       for (String ingredientKey : ingredients.getKeys(false)) {
         char symbol = ingredientKey.charAt(0);
         String ingredientMaterial = ingredients.getString(ingredientKey);
@@ -271,8 +308,9 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
           Material ingMaterial = Material.getMaterial(ingredientMaterial.toUpperCase());
           if (ingMaterial != null) {
             recipe.setIngredient(symbol, ingMaterial);
+            getLogger().info("§7- " + symbol + " = " + ingMaterial);
           } else {
-            getLogger().warning("Matériau inconnu: " + ingredientMaterial + " dans le craft " + craftId);
+            getLogger().warning("§eMatériau inconnu: " + ingredientMaterial + " dans le craft " + craftId);
           }
         }
       }
@@ -281,10 +319,13 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
     // Enregistrement de la recette
     try {
       Bukkit.addRecipe(recipe);
-      getLogger().info("Craft enregistré: " + craftId);
+      getLogger().info("§a✓ SUCCÈS: Craft enregistré: " + craftId);
     } catch (IllegalArgumentException e) {
-      getLogger().warning("Erreur avec le craft " + craftId + ": " + e.getMessage());
+      getLogger().severe("§c✗ ERREUR avec le craft " + craftId + ": " + e.getMessage());
+      e.printStackTrace();
     }
+    
+    getLogger().info("§e--- Fin enregistrement craft: §6" + craftId + "\n");
   }
 
   // Helper method to generate UUIDs for attributes
@@ -310,13 +351,18 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
     if (craftId == null)
       return;
 
+    getLogger().info("§b[PrepareCraft] Craft détecté: " + craftId);
+
     // Vérifier si cet objet a déjà été crafté globalement
     if (globalCraftedItems.contains(craftId)) {
       event.getInventory().setResult(null);
       if (event.getViewers().get(0) instanceof Player) {
         Player player = (Player) event.getViewers().get(0);
         player.sendMessage("§cCet objet a déjà été crafté sur le serveur !");
+        getLogger().info("§b[PrepareCraft] Craft bloqué: " + craftId + " déjà fait par serveur");
       }
+    } else {
+      getLogger().info("§b[PrepareCraft] Craft autorisé: " + craftId + " pas encore fait");
     }
   }
 
@@ -333,10 +379,13 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
       if (craftId == null)
         return;
 
+      getLogger().info("§b[CraftItem] Tentative de craft: " + craftId + " par " + player.getName());
+
       // Vérifier si l'objet a déjà été crafté
       if (globalCraftedItems.contains(craftId)) {
         event.setCancelled(true);
         player.sendMessage("§cCet objet a déjà été crafté sur le serveur !");
+        getLogger().info("§b[CraftItem] Craft annulé: " + craftId + " déjà fait");
         return;
       }
 
@@ -361,6 +410,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
       }
 
       player.sendMessage("§aVous avez crafté un objet unique !");
+      getLogger().info("§b[CraftItem] Craft réussi: " + craftId + " par " + player.getName());
     }
   }
 
@@ -368,8 +418,19 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
     if (recipe instanceof ShapedRecipe) {
       ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
       String key = shapedRecipe.getKey().getKey();
+      String namespace = shapedRecipe.getKey().getNamespace();
+      
+      getLogger().info("§bDEBUG Recipe trouvée:");
+      getLogger().info("§7- Namespace: " + namespace);
+      getLogger().info("§7- Key: " + key);
+      getLogger().info("§7- Full: " + shapedRecipe.getKey().toString());
+      
       if (key.startsWith("unique_craft_")) {
-        return key.substring("unique_craft_".length());
+        String craftId = key.substring("unique_craft_".length());
+        getLogger().info("§aCraft ID extrait: " + craftId);
+        return craftId;
+      } else {
+        getLogger().warning("§eCette recette n'est pas un craft unique (pas le bon préfixe)");
       }
     }
     return null;
@@ -384,6 +445,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
         sender.sendMessage("§e/uniquecraft reload - Recharge la configuration");
         sender.sendMessage("§e/uniquecraft list - Liste les crafts disponibles");
         sender.sendMessage("§e/uniquecraft reset <id> - Réinitialise un craft");
+        sender.sendMessage("§e/uniquecraft debug - Infos de débogage");
         return true;
       }
 
@@ -415,6 +477,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
             String status = crafted ? "§cDéjà crafté" : "§aDisponible";
             sender.sendMessage("§e- " + craftId + ": " + status);
           }
+          sender.sendMessage("§eTotal: " + craftsSection.getKeys(false).size() + " crafts");
         } else {
           sender.sendMessage("§cAucun craft configuré !");
         }
@@ -444,11 +507,57 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
         sender.sendMessage("§aCraft " + craftId + " réinitialisé !");
         return true;
       }
+
+      if (args[0].equalsIgnoreCase("debug")) {
+        sender.sendMessage("§6=== DEBUG UniqueCrafts ===");
+        
+        // Afficher tous les crafts enregistrés sur le serveur
+        sender.sendMessage("§eTous les crafts sur le serveur:");
+        int count = 0;
+        int ourCrafts = 0;
+        
+        // CORRECTION : Utiliser recipeIterator() au lieu de getRecipes()
+        Iterator<Recipe> iterator = Bukkit.recipeIterator();
+        while (iterator.hasNext()) {
+          Recipe recipe = iterator.next();
+          if (recipe instanceof ShapedRecipe) {
+            ShapedRecipe sr = (ShapedRecipe) recipe;
+            String key = sr.getKey().toString();
+            sender.sendMessage("§7- " + key);
+            count++;
+            if (key.contains("unique_craft_")) {
+              ourCrafts++;
+            }
+          }
+        }
+        
+        sender.sendMessage("§eTotal crafts ShapedRecipe: " + count);
+        sender.sendMessage("§eNos crafts uniques trouvés: " + ourCrafts);
+        
+        // Afficher nos crafts chargés
+        sender.sendMessage("§6Nos crafts configurés:");
+        ConfigurationSection craftsSection = craftsConfig.getConfigurationSection("crafts");
+        if (craftsSection != null) {
+          for (String craftId : craftsSection.getKeys(false)) {
+            sender.sendMessage("§7- " + craftId);
+          }
+          sender.sendMessage("§eTotal dans config: " + craftsSection.getKeys(false).size());
+        } else {
+          sender.sendMessage("§cAucun craft dans la config !");
+        }
+        
+        // Vérifier si le fichier existe
+        sender.sendMessage("§6Fichier crafts.yml existe: " + craftsFile.exists());
+        sender.sendMessage("§6Dossier plugin: " + getDataFolder().getAbsolutePath());
+        
+        return true;
+      }
     }
     return false;
   }
 
   private void removeAllRecipes() {
+    getLogger().info("§6Suppression de toutes nos recettes...");
     // Get all recipes and remove ours
     Iterator<Recipe> iterator = Bukkit.recipeIterator();
     List<Recipe> newRecipes = new ArrayList<>();
@@ -460,6 +569,8 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
         // Keep recipes that are NOT from our plugin
         if (!shapedRecipe.getKey().getNamespace().equals(getName().toLowerCase())) {
           newRecipes.add(recipe);
+        } else {
+          getLogger().info("§7- Supprimé: " + shapedRecipe.getKey().toString());
         }
       } else {
         // Keep non-shaped recipes
@@ -472,6 +583,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
     for (Recipe recipe : newRecipes) {
       Bukkit.addRecipe(recipe);
     }
+    getLogger().info("§aRecettes supprimées et réinitialisées !");
   }
 
   @Override
@@ -479,7 +591,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
     if (command.getName().equalsIgnoreCase("uniquecraft")) {
       if (args.length == 1) {
         List<String> completions = new ArrayList<>();
-        for (String option : Arrays.asList("reload", "list", "reset")) {
+        for (String option : Arrays.asList("reload", "list", "reset", "debug")) {
           if (option.startsWith(args[0].toLowerCase())) {
             completions.add(option);
           }

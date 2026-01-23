@@ -8,7 +8,7 @@ description: Plugin pour des crafts uniques sur le serveur
 commands:
   uniquecraft:
     description: Gérer les crafts uniques
-    usage: /<command> [reload|list|reset]
+    usage: /<command> [reload|list|reset|debug]
     permission: uniquecrafts.admin
 
 permissions:
