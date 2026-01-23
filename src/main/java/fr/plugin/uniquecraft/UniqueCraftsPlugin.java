@@ -99,17 +99,23 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
   }
 
   private void loadCustomRecipes() {
-    ConfigurationSection craftsSection = craftsConfig.getConfigurationSection("crafts");
-    if (craftsSection == null)
-      return;
+  ConfigurationSection craftsSection = craftsConfig.getConfigurationSection("crafts");
+  if (craftsSection == null) {
+    getLogger().warning("Section 'crafts' introuvable dans crafts.yml !");
+    getLogger().warning("Contenu du fichier: " + craftsConfig.saveToString());
+    return;
+  }
 
-    for (String craftId : craftsSection.getKeys(false)) {
-      ConfigurationSection craft = craftsSection.getConfigurationSection(craftId);
-      if (craft != null) {
-        registerRecipe(craftId, craft);
-      }
+  getLogger().info("Nombre de crafts trouvés: " + craftsSection.getKeys(false).size());
+  
+  for (String craftId : craftsSection.getKeys(false)) {
+    getLogger().info("Chargement du craft: " + craftId);
+    ConfigurationSection craft = craftsSection.getConfigurationSection(craftId);
+    if (craft != null) {
+      registerRecipe(craftId, craft);
     }
   }
+}
 
   private void registerRecipe(String craftId, ConfigurationSection craft) {
     // Récupération du résultat
