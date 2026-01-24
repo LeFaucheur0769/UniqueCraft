@@ -121,6 +121,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
       getLogger().severe("§c    shape: etc...");
 
       // debug logs
+      getLogger().severe(craftsConfig.get("crafts").toString());
       return;
     }
 
