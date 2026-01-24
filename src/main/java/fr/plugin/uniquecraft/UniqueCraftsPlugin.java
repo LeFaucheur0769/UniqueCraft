@@ -60,6 +60,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
 
   @Override
   public void onDisable() {
+    // Save the crafts in the config
     saveCraftsConfig();
     getLogger().info("Plugin UniqueCrafts désactivé !");
   }
@@ -118,11 +119,13 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
       getLogger().severe("§ccrafts:");
       getLogger().severe("§c  nom_du_craft:");
       getLogger().severe("§c    shape: etc...");
+
+      // debug logs
       return;
     }
 
     getLogger().info("§aCrafts trouvés dans config: " + craftsSection.getKeys(false).size());
-    
+
     for (String craftId : craftsSection.getKeys(false)) {
       getLogger().info("§eTentative de chargement du craft: §6" + craftId);
       ConfigurationSection craft = craftsSection.getConfigurationSection(craftId);
@@ -137,7 +140,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
 
   private void registerRecipe(String craftId, ConfigurationSection craft) {
     getLogger().info("§e--- Début enregistrement craft: §6" + craftId);
-    
+
     // Récupération du résultat
     String resultMaterial = craft.getString("result.material");
     int resultAmount = craft.getInt("result.amount", 1);
@@ -284,7 +287,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
     getLogger().info("§aClé générée: §7" + key.toString());
     getLogger().info("§aNamespace: §7" + key.getNamespace());
     getLogger().info("§aKey: §7" + key.getKey());
-    
+
     ShapedRecipe recipe = new ShapedRecipe(key, result);
 
     // Configuration de la forme
@@ -324,7 +327,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
       getLogger().severe("§c✗ ERREUR avec le craft " + craftId + ": " + e.getMessage());
       e.printStackTrace();
     }
-    
+
     getLogger().info("§e--- Fin enregistrement craft: §6" + craftId + "\n");
   }
 
@@ -419,12 +422,12 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
       ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
       String key = shapedRecipe.getKey().getKey();
       String namespace = shapedRecipe.getKey().getNamespace();
-      
+
       getLogger().info("§bDEBUG Recipe trouvée:");
       getLogger().info("§7- Namespace: " + namespace);
       getLogger().info("§7- Key: " + key);
       getLogger().info("§7- Full: " + shapedRecipe.getKey().toString());
-      
+
       if (key.startsWith("unique_craft_")) {
         String craftId = key.substring("unique_craft_".length());
         getLogger().info("§aCraft ID extrait: " + craftId);
@@ -461,7 +464,7 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
         loadCraftedItems();
 
         // Recharger les recettes
-        removeAllRecipes();
+        // removeAllRecipes();
         loadCustomRecipes();
 
         sender.sendMessage("§aConfiguration rechargée !");
@@ -510,12 +513,12 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
 
       if (args[0].equalsIgnoreCase("debug")) {
         sender.sendMessage("§6=== DEBUG UniqueCrafts ===");
-        
+
         // Afficher tous les crafts enregistrés sur le serveur
         sender.sendMessage("§eTous les crafts sur le serveur:");
         int count = 0;
         int ourCrafts = 0;
-        
+
         // CORRECTION : Utiliser recipeIterator() au lieu de getRecipes()
         Iterator<Recipe> iterator = Bukkit.recipeIterator();
         while (iterator.hasNext()) {
@@ -530,10 +533,10 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
             }
           }
         }
-        
+
         sender.sendMessage("§eTotal crafts ShapedRecipe: " + count);
         sender.sendMessage("§eNos crafts uniques trouvés: " + ourCrafts);
-        
+
         // Afficher nos crafts chargés
         sender.sendMessage("§6Nos crafts configurés:");
         ConfigurationSection craftsSection = craftsConfig.getConfigurationSection("crafts");
@@ -545,11 +548,11 @@ public class UniqueCraftsPlugin extends JavaPlugin implements Listener {
         } else {
           sender.sendMessage("§cAucun craft dans la config !");
         }
-        
+
         // Vérifier si le fichier existe
         sender.sendMessage("§6Fichier crafts.yml existe: " + craftsFile.exists());
         sender.sendMessage("§6Dossier plugin: " + getDataFolder().getAbsolutePath());
-        
+
         return true;
       }
     }
